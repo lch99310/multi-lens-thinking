@@ -13,7 +13,7 @@
 
 (Topics the user is currently weighing or building toward. Updated when a clear shift happens.)
 
-- <e.g. "Sydney DC career bet — currently in evaluation phase">
+- <e.g. "XX career bet — currently in evaluation phase">
 
 ---
 
@@ -30,7 +30,7 @@
 (Specific past predictions or positions, with outcome where known. The Historical and Personal lenses reference these.)
 
 - <e.g. "2024-03: Argued AU economy structurally exposed to China demand decline. (Status: partially borne out by 2025 iron ore price action.)">
-- <e.g. "2024-09: Predicted NEXTDC capex constraint would slow APAC expansion. (Status: wrong — they raised AU$750M end of 2024.)">
+- <e.g. "2024-09: Predicted Google capex constraint would slow APAC expansion. (Status: wrong — they raised US$750M end of 2024.)">
 
 ---
 
