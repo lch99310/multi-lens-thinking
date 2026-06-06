@@ -73,8 +73,6 @@ cp templates/memory.md  memory.md
 Ask any decision-style or thesis-style question. The skill auto-triggers via its description:
 
 ```
-"我在考慮要不要去悉尼做數據中心相關的工作"
-"2026 川習會對台海局勢的影響怎麼看"
 "基於當下的地緣風險與宏觀經濟，分析未來三年黃金最有可能的走勢"
 ```
 
@@ -270,8 +268,6 @@ cp templates/memory.md  memory.md
 直接問任何決策型或論點型問題，skill 會依 description 自動觸發：
 
 ```
-"我在考慮要不要去悉尼做數據中心相關的工作"
-"2026 川習會對台海局勢的影響怎麼看"
 "基於當下的地緣風險與宏觀經濟，分析未來三年黃金最有可能的走勢"
 ```
 
