@@ -110,26 +110,7 @@ A weak search hint produces a weak lens output. Examples:
 
 ## Examples
 
-### Example A — personal_decision, full lenses
-
-Q: "我想在悉尼找數據中心相關的工作，這是個好決定嗎？"
-
-```json
-{
-  "question_type": "decision",
-  "answer_mode": "personal_decision",
-  "user_snapshot": "User has analyst/strategy background and recent Sydney relocation. persona.md mentions AI infrastructure interest and a preference for industries with secular tailwinds. memory.md notes prior worry about AU's commodity-dependent economy.",
-  "search_hints": {
-    "macro": "AI infrastructure capex 2025-2026, hyperscaler APAC expansion, AUKUS data sovereignty, AU energy policy for DC, capital flight to neutral jurisdictions",
-    "local": "Sydney DC cluster (Macquarie Park, Mascot, Erskine Park), NSW grid + water constraints, AWS/Azure/Google AU regions, 482/186 visa for infrastructure roles, AU DC operator landscape (NEXTDC, AirTrunk, Equinix)",
-    "historical": "Singapore 1990s APAC hub formation, Ireland tax-driven DC cluster 2010s, Dubai post-2008 safe-haven capital flows"
-  },
-  "active_nodes": ["macro", "personal", "local", "historical"],
-  "skip_log": []
-}
-```
-
-### Example B — operational, skip-heavy
+### Example A — operational, skip-heavy
 
 Q: "How do I install pandas with pip?"
 
@@ -149,30 +130,9 @@ Q: "How do I install pandas with pip?"
 }
 ```
 
-### Example C — analytical, partial lenses
+### Example B — analytical, the writer-trap
 
-Q: "2026 川習會後台海風險是否升高？"
-
-```json
-{
-  "question_type": "thesis",
-  "answer_mode": "analytical",
-  "user_snapshot": "User has Taiwanese background per persona.md, so the topic has personal weight, but the QUESTION is asking for analysis of an external situation, not personal advice. memory.md notes prior skepticism of headline-driven risk narratives — Synthesizer should match that tone.",
-  "search_hints": {
-    "macro": "Trump-Xi 2026 summit readout, Taiwan Strait military activity 2026 Q1-Q2, US arms package timeline, semiconductor export controls 2026, PLA Eastern Theater drills",
-    "local": "",
-    "historical": "1995-96 Taiwan Strait Crisis, 1972 Shanghai Communique negotiations, Reagan-Gorbachev Reykjavik summit dynamics, 1962 Cuban Missile back-channel"
-  },
-  "active_nodes": ["macro", "personal", "historical"],
-  "skip_log": [
-    {"node": "local", "reason": "Question is about cross-strait dynamics at the international level, not a specific city's situation."}
-  ]
-}
-```
-
-### Example D — analytical, the writer-trap
-
-Q: "今天 2026-06-06，我人在悉尼。基於當前世界的地緣風險與經濟狀況，分析黃金未來三年的可能走勢。"
+Q: "基於當前世界的地緣風險與經濟狀況，分析黃金未來三年的可能走勢。"
 
 ```json
 {
@@ -189,6 +149,6 @@ Q: "今天 2026-06-06，我人在悉尼。基於當前世界的地緣風險與�
 }
 ```
 
-Note example D specifically: the user IS a writer/analyst, but the question is still `analytical`, not `personal_decision`. Personal lens job in this case = voice tuning only; downstream Synthesizer delivers the gold thesis, not "how to write about gold".
+Note example B specifically: the user IS a writer/analyst, but the question is still `analytical`, not `personal_decision`. Personal lens job in this case = voice tuning only; downstream Synthesizer delivers the gold thesis, not "how to write about gold".
 
 Now read the user's question and produce the JSON.
