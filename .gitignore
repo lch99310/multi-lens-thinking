@@ -1,0 +1,15 @@
+# Personal — do NOT commit (root only; templates/persona.md and templates/memory.md SHOULD ship)
+/persona.md
+/memory.md
+
+# Generated patches awaiting user confirmation — local only
+patches/*
+!patches/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
