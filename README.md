@@ -7,25 +7,21 @@
 
 ## English  // Other Language：[Chinese](README.CN.md)
 
-### What this skill does
+### Why this exists
 
-`multi-lens-thinking` is a six-stage pipeline that:
+There's a version of AI assistance that feels impressive the first time and hollow the tenth. You ask about gold, geopolitical risk, or whether a career move makes sense — and the model returns a polished, confident, completely generic answer. Calibrated for the median reader.
 
-1. Decomposes a decision-style or thesis-style question into the perspectives that materially affect the answer.
-2. Runs each perspective as an isolated sub-agent, with its own context and search budget.
-3. Synthesizes the outputs into a single answer **tailored to who you actually are** (via `persona.md` + `memory.md`).
-4. Writes a candidate memory patch you confirm next session — so the system learns your views, your prior judgments, and the patterns it gets wrong, slowly and deliberately.
+**The median reader is not you.**
 
-It is **not** a generic "give me four perspectives" prompt. The Router can **skip lenses** when they don't help, and the Synthesizer is mode-aware: an analytical question gets analysis (not a writing brief), a personal-decision question gets advice (not market commentary).
+The model doesn't know you're based in Sydney, that your returns are AUD-denominated, that the relevant instruments for you are ASX-listed miners — not London spot. It doesn't know how you've thought about similar situations before. It doesn't know which parts of its answer you already know and which you actually needed to hear.
 
-### Why a pipeline (vs. one big prompt)
+The naive fix is to stuff more context into the prompt: *"I'm a Sydney-based investor, AUD-paid, 5-year horizon, here's what I already know..."*. But this introduces a second, subtler failure: **context bleeding**. Ask a single prompt to simultaneously run macro analysis, historical analogies, and local market dynamics while holding all your personal constraints — and the frames bleed into each other. The macro section starts thinking in AUD when it should stay in USD. The historical analogy drifts toward your risk tolerance instead of staying disciplined on the mechanism. The answer *feels* personalized but is actually a compromise of every frame at once.
 
-- **Context isolation**: each lens runs in its own sub-agent, so a long Macro search doesn't pollute the Personal lens's read of your persona.
-- **Parallel execution**: Macro / Personal / Local / Historical run concurrently. Latency ≈ slowest lens, not sum.
-- **Mode-aware synthesis**: the Router emits an `answer_mode` (`analytical | personal_decision | framework | meta`) determined by the question verb, NOT your professional identity. This is the fix for the "writer trap" — where an analyst asking "analyze gold" used to get a writing brief instead of the analysis.
-- **Auditable memory**: the Memory Updater writes patches, never edits `memory.md` directly. You approve each patch before it lands.
+The root cause is not model capability — it's **architecture**. A single prompt asks the model to be all things at once.
 
-### Architecture
+### How it works
+
+Run each analytical dimension as its own sub-agent, in its own context. Synthesize at the end. That's the entire premise.
 
 ```
 Question
@@ -52,7 +48,33 @@ Reply to user
 [Memory Updater] → patches/YYYYMMDD-HHMMSS.md   (confirmed next session, then merged)
 ```
 
-The four lens nodes run **in parallel** via the Task tool. Each is a separate sub-agent so contexts stay isolated.
+The **Router** reads your `persona.md` + `memory.md` once and decides:
+
+- which lenses to activate — *skip aggressively; most questions don't need all four*
+- which `answer_mode` to emit — `analytical` / `personal_decision` / `framework` / `meta`
+
+Four lenses then run **in parallel** (latency = slowest lens, not the sum):
+
+| Lens | What it sees | Searches? |
+|------|--------------|-----------|
+| **Macro** | Geopolitics, capital flows, central-bank behavior, monetary regime | Yes (web) |
+| **Personal** | Your background, constraints, prior judgments | No — reads you, not the world |
+| **Local** | On-the-ground reality in your geography: prices, regulations, instruments, tax | Yes (web / anysearch) |
+| **Historical** | The analog from the past that explains the present *mechanism* — not just surface similarity | Yes (web + LLM) |
+
+The **Synthesizer** receives all four outputs plus the Router's mode and resolves conflicts explicitly. Where Macro and Historical disagree, it says so and explains its weighting — instead of papering them into a "balanced" sentence.
+
+### The "writer trap" (why mode matters)
+
+A failure mode worth naming. An analyst asks *"analyze gold"* — and the model, having read their profession, returns a writing brief instead of analysis. The fix: `answer_mode` is determined by the **question verb**, not your identity. *"Analyze gold"* always emits `analytical` mode, even if you're a professional writer. Personal lens in `analytical` mode shrinks to voice-calibration only; the Synthesizer is explicitly forbidden from "you should write a piece on this" meta-commentary.
+
+### A memory loop that stays honest
+
+After each session, the Memory Updater writes a **candidate patch** — proposed additions to `memory.md`. You review at the start of the next session: approve / reject / edit per item. Rejected items are logged so the system stops proposing them.
+
+This is **deliberately slow**. Auto-updating memory drifts; a few weeks of AI sessions can quietly poison what the model thinks it knows about you. The patch-and-confirm loop keeps you in control of what the system learns — without forcing you to maintain a context file after every conversation.
+
+Your `persona.md` and `memory.md` stay on your machine. The public repo ships only the pipeline logic.
 
 ### Install
 
