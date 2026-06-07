@@ -7,25 +7,21 @@
 
 ## English
 
-### What this skill does
+### Why this exists
 
-`multi-lens-thinking` is a six-stage pipeline that:
+There's a version of AI assistance that feels impressive the first time and hollow the tenth. You ask about gold, geopolitical risk, or whether a career move makes sense — and the model returns a polished, confident, completely generic answer. Calibrated for the median reader.
 
-1. Decomposes a decision-style or thesis-style question into the perspectives that materially affect the answer.
-2. Runs each perspective as an isolated sub-agent, with its own context and search budget.
-3. Synthesizes the outputs into a single answer **tailored to who you actually are** (via `persona.md` + `memory.md`).
-4. Writes a candidate memory patch you confirm next session — so the system learns your views, your prior judgments, and the patterns it gets wrong, slowly and deliberately.
+**The median reader is not you.**
 
-It is **not** a generic "give me four perspectives" prompt. The Router can **skip lenses** when they don't help, and the Synthesizer is mode-aware: an analytical question gets analysis (not a writing brief), a personal-decision question gets advice (not market commentary).
+The model doesn't know you're based in Sydney, that your returns are AUD-denominated, that the relevant instruments for you are ASX-listed miners — not London spot. It doesn't know how you've thought about similar situations before. It doesn't know which parts of its answer you already know and which you actually needed to hear.
 
-### Why a pipeline (vs. one big prompt)
+The naive fix is to stuff more context into the prompt: *"I'm a Sydney-based investor, AUD-paid, 5-year horizon, here's what I already know..."*. But this introduces a second, subtler failure: **context bleeding**. Ask a single prompt to simultaneously run macro analysis, historical analogies, and local market dynamics while holding all your personal constraints — and the frames bleed into each other. The macro section starts thinking in AUD when it should stay in USD. The historical analogy drifts toward your risk tolerance instead of staying disciplined on the mechanism. The answer *feels* personalized but is actually a compromise of every frame at once.
 
-- **Context isolation**: each lens runs in its own sub-agent, so a long Macro search doesn't pollute the Personal lens's read of your persona.
-- **Parallel execution**: Macro / Personal / Local / Historical run concurrently. Latency ≈ slowest lens, not sum.
-- **Mode-aware synthesis**: the Router emits an `answer_mode` (`analytical | personal_decision | framework | meta`) determined by the question verb, NOT your professional identity. This is the fix for the "writer trap" — where an analyst asking "analyze gold" used to get a writing brief instead of the analysis.
-- **Auditable memory**: the Memory Updater writes patches, never edits `memory.md` directly. You approve each patch before it lands.
+The root cause is not model capability — it's **architecture**. A single prompt asks the model to be all things at once.
 
-### Architecture
+### How it works
+
+Run each analytical dimension as its own sub-agent, in its own context. Synthesize at the end. That's the entire premise.
 
 ```
 Question
@@ -52,7 +48,33 @@ Reply to user
 [Memory Updater] → patches/YYYYMMDD-HHMMSS.md   (confirmed next session, then merged)
 ```
 
-The four lens nodes run **in parallel** via the Task tool. Each is a separate sub-agent so contexts stay isolated.
+The **Router** reads your `persona.md` + `memory.md` once and decides:
+
+- which lenses to activate — *skip aggressively; most questions don't need all four*
+- which `answer_mode` to emit — `analytical` / `personal_decision` / `framework` / `meta`
+
+Four lenses then run **in parallel** (latency = slowest lens, not the sum):
+
+| Lens | What it sees | Searches? |
+|------|--------------|-----------|
+| **Macro** | Geopolitics, capital flows, central-bank behavior, monetary regime | Yes (web) |
+| **Personal** | Your background, constraints, prior judgments | No — reads you, not the world |
+| **Local** | On-the-ground reality in your geography: prices, regulations, instruments, tax | Yes (web / anysearch) |
+| **Historical** | The analog from the past that explains the present *mechanism* — not just surface similarity | Yes (web + LLM) |
+
+The **Synthesizer** receives all four outputs plus the Router's mode and resolves conflicts explicitly. Where Macro and Historical disagree, it says so and explains its weighting — instead of papering them into a "balanced" sentence.
+
+### The "writer trap" (why mode matters)
+
+A failure mode worth naming. An analyst asks *"analyze gold"* — and the model, having read their profession, returns a writing brief instead of analysis. The fix: `answer_mode` is determined by the **question verb**, not your identity. *"Analyze gold"* always emits `analytical` mode, even if you're a professional writer. Personal lens in `analytical` mode shrinks to voice-calibration only; the Synthesizer is explicitly forbidden from "you should write a piece on this" meta-commentary.
+
+### A memory loop that stays honest
+
+After each session, the Memory Updater writes a **candidate patch** — proposed additions to `memory.md`. You review at the start of the next session: approve / reject / edit per item. Rejected items are logged so the system stops proposing them.
+
+This is **deliberately slow**. Auto-updating memory drifts; a few weeks of AI sessions can quietly poison what the model thinks it knows about you. The patch-and-confirm loop keeps you in control of what the system learns — without forcing you to maintain a context file after every conversation.
+
+Your `persona.md` and `memory.md` stay on your machine. The public repo ships only the pipeline logic.
 
 ### Install
 
@@ -204,25 +226,21 @@ MIT. See `LICENSE`.
 
 ## 繁體中文
 
-### 這個 skill 在幹嘛
+### 為什麼有這個 skill
 
-`multi-lens-thinking` 是一條六階段的 pipeline：
+有一種 AI 輔助工具，第一次用覺得驚豔，用到第十次覺得空洞。你問黃金市場、地緣風險、或某個職涯決定值不值得——模型回傳一個流暢、自信、完全通用的答案。為「中位數讀者」校準的。
 
-1. 把一個決策型或論點型的問題，分解成幾個會實質影響答案的視角。
-2. 每個視角各用一個獨立的 sub-agent 跑，context 與搜尋預算彼此隔離。
-3. 把這些輸出整合成一份**為「你這個人」量身的答案**（透過 `persona.md` + `memory.md`）。
-4. 寫一個候選 memory patch，下次 session 由你親自確認——這條學習迴路慢、刻意、可審計，避免自動更新 memory 慢慢污染信號。
+**中位數讀者不是你。**
 
-它**不是**「幫我給四個觀點」這種泛用 prompt。Router 在沒幫助時會**主動跳過 lens**；Synthesizer 是 mode-aware 的：分析題給你分析（不是寫作大綱），個人決策題給你建議（不是市場評論）。
+它不知道你住在雪梨、報酬以澳元計價、對你而言最相關的工具是 ASX 礦商而非倫敦現貨。它不知道你過去如何思考類似情境。它也不知道哪些部分你早已了解、哪些才是你真正需要聽到的。
 
-### 為什麼用 pipeline（而不是一個大 prompt）
+直覺的解法是塞更多 context 進 prompt：「我是雪梨的投資者、澳元計薪、五年期、以下是我已知的⋯⋯」但這帶來第二個、更隱性的問題：**context 污染**。要求單一 prompt 同時處理宏觀分析、歷史類比、在地市場動態，又要記住你所有個人限制——各個框架就會互相滲透。宏觀段落該以 USD 思考的地方開始講 AUD；歷史類比因你的風險偏好而偏移，無法嚴格聚焦在機制本身。答案*看起來*個人化，實際上是所有框架同時妥協的產物。
 
-- **Context 隔離**：每個 lens 在獨立 sub-agent 中跑，避免 Macro 的長搜尋結果污染 Personal lens 對你 persona 的閱讀。
-- **平行執行**：Macro / Personal / Local / Historical 同時跑。延遲 ≈ 最慢的 lens，而非總和。
-- **Mode-aware 整合**：Router 輸出一個 `answer_mode`（`analytical | personal_decision | framework | meta`），由**問題動詞**決定，**不**由你的職業身份決定。這修掉了「writer trap」——以前一位分析師問「分析黃金」會拿到一份寫作大綱，而非分析本身。
-- **可審計的 memory**：Memory Updater 只寫 patch、絕不直接改 `memory.md`。每筆 patch 由你 approve 後才落地。
+問題的根源不是模型能力，而是**架構**。單一 prompt 要求模型同時扮演所有角色。
 
-### 架構圖
+### 它怎麼運作
+
+讓每個分析維度在自己的 sub-agent、自己的 context 裡獨立運行，最後再綜合。整個 skill 的設計前提就是這一句。
 
 ```
 問題
@@ -249,7 +267,33 @@ MIT. See `LICENSE`.
 [Memory Updater] → patches/YYYYMMDD-HHMMSS.md   （下次 session 確認後合入 memory.md）
 ```
 
-四個 lens 節點透過 Task tool **平行**啟動，各自獨立 sub-agent，context 互不干擾。
+**分流器（Router）** 讀取你的 `persona.md` + `memory.md` 一次，做兩個決定：
+
+- 啟動哪些 lens——*積極跳過；多數問題不需要全部四個*
+- 輸出哪個 `answer_mode`——`analytical` / `personal_decision` / `framework` / `meta`
+
+四個 lens 接著**平行運行**（延遲 = 最慢的 lens，不是總和）：
+
+| Lens | 在看什麼 | 是否搜尋？ |
+|------|---------|-----------|
+| **Macro** 宏觀 | 地緣、資本流、央行行為、貨幣秩序 | 是（網路） |
+| **Personal** 個人 | 你的背景、限制、過往判斷 | 否——讀你，不讀世界 |
+| **Local** 在地 | 你所在地的現實：價格、法規、可用工具、稅務 | 是（網路 / anysearch） |
+| **Historical** 歷史 | 解釋當下「機制」的歷史類比——不是表面相似 | 是（網路 + LLM） |
+
+**綜合器（Synthesizer）** 收四個 lens 輸出加 Router 的 mode，明確處理視角間的分歧。當宏觀與歷史意見不同，它會說明並解釋加權邏輯——而不是和稀泥成一句「綜合來看」。
+
+### 「寫作陷阱」（為什麼 mode 很重要）
+
+值得單獨命名的失效模式：分析師問「分析黃金走勢」——模型讀到 prompt 裡的職業背景，回的是一份寫作簡報而非分析本身。修法是：`answer_mode` 由**問題動詞**決定，不由你的身份決定。「分析黃金」永遠輸出 `analytical` 模式，即使你是專業寫作者。Personal lens 在 `analytical` 模式下縮為「語氣校準」；Synthesizer 被明確禁止輸出「你應該寫一篇⋯⋯」這類元評論。
+
+### 不會說謊的記憶迴圈
+
+每次對話結束後，記憶更新器會輸出一份**候選 patch**——擬加入 `memory.md` 的條目。你在下次對話開始時逐條審閱：approve / reject / edit。被拒絕的條目會被記錄，系統不會再提同樣建議。
+
+這個設計**刻意慢**。自動更新的記憶會漂移；幾週的 AI 對話可能讓系統對你的認知悄悄走偏。Patch 確認機制讓你掌控系統學什麼，但又不需要在每次對話結束後手動維護背景檔案。
+
+你的 `persona.md` 與 `memory.md` 保留在本機。公開 repo 只有 pipeline 邏輯本身。
 
 ### 安裝
 
