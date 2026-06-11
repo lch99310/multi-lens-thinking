@@ -23,7 +23,6 @@ Split the question across four independent lenses — **Macro · Personal · Loc
 
 No more "impressive the first time, hollow the tenth" generic AI answers.
 
-## English  // Other Language：[Chinese](README.CN.md)
 
 ---
 
