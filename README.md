@@ -1,5 +1,22 @@
 # multi-lens-thinking
 
+<p align="center">
+  <img src="multi-lens_thinking_workflow.png" alt="Multi-Lens Thinking Workflow" width="400">
+</p>
+
+<h2 align="center">MLT —— Multi-Lens Thinking</h2>
+
+<p align="center">
+  English | <a href="README.CN.md">中文</a>
+</p>
+
+<p align="center">
+  <img alt="Version" src="https://img.shields.io/badge/version-v1.0.0-brightgreen">
+  <img alt="License" src="https://img.shields.io/badge/licence-MIT-blue">
+  <img alt="Audience" src="https://img.shields.io/badge/audience-Everyone-orange">
+  <img alt="Workflow" src="https://img.shields.io/badge/what%20this%20for-Asking%20Anything-purple">
+</p>
+
 > **Same question. Four lenses. One answer written only for you.**
 
 Split the question across four independent lenses — **Macro · Personal · Local · Historical** — let them think in parallel, then synthesize a single answer that's *actually about you*.
