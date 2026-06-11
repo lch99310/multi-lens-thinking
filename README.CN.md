@@ -1,12 +1,28 @@
 # multi-lens-thinking
 
+<p align="center">
+  <img src="multi-lens_thinking_workflow.png" alt="Multi-Lens Thinking Workflow" width="400">
+</p>
+
+<h2 align="center">MLT —— Multi-Lens Thinking</h2>
+
+<p align="center">
+  中文 | <a href="README.md">English</a>
+</p>
+
+<p align="center">
+  <img alt="Version" src="https://img.shields.io/badge/version-v1.0.0-brightgreen">
+  <img alt="License" src="https://img.shields.io/badge/licence-MIT-blue">
+  <img alt="Audience" src="https://img.shields.io/badge/audience-Everyone-orange">
+  <img alt="Workflow" src="https://img.shields.io/badge/what%20this%20for-Asking%20Anything-purple">
+</p>
+
 > **同一個問題、四種角度、一個只為你而寫的答案。**
 
 把問題拆給四副獨立的鏡頭——**宏觀 · 個人 · 在地 · 歷史**——各自並行思考，再合成一份*只屬於你的*判斷。
 
 不再是那種「第一次驚豔、第十次空洞」的通用 AI 回答。
 
-## 繁體中文  // Other Language：[English](README.md)
 
 ---
 
