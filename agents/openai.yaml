@@ -1,0 +1,7 @@
+interface:
+  display_name: "Multi-Lens Thinking"
+  short_description: "Run questions through macro, personal, local, and historical lenses"
+  default_prompt: "Use $multi-lens-thinking to analyze this decision from multiple lenses and synthesize a clear answer."
+
+policy:
+  allow_implicit_invocation: true

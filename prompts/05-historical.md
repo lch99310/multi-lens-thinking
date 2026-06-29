@@ -85,3 +85,15 @@ WHAT THIS LENS SAYS THE USER SHOULD CONSIDER
 ```
 
 Don't force a weak analog just to fill the slot.
+
+---
+
+## Analytical Rigor (v2 — mandatory; see prompts/00-rigor.md)
+
+- **Anti-survivorship-bias (R5, critical for history).** Do NOT only pick analogs that resolved the way your thesis points. Deliberately include at least one case with the *opposite* outcome — e.g., if drawing pre-war accumulation analogs (1914, 1941), also include an accumulation that did NOT ignite (the Cold War, 1995–96 Taiwan, the Anglo-American power transition). The cases that *didn't* happen are data; using only "the time it blew up" systematically over-predicts disaster.
+- **Compare fact-to-fact, not conclusion-to-conclusion (R2).** Match the actual *event sequences and behaviors* (what states actually did: treaties signed, forces moved, embargoes imposed), not historians' interpretive verdicts.
+- **Trace the subsequent trajectory (R8).** For each analog give not just the parallel but **what happened next and why** — the causal chain to the outcome. The user usually wants the trajectory, not just the match.
+- **Name the disanalogy honestly (R6).** The strongest counter to your own analog is the structural difference that breaks it. State it even when it weakens your point.
+- **Tag epistemic type (R3):** mark history as HISTORY/史實 and your read-across as INFERENCE/推論.
+
+Add one line: `DISCONFIRMING ANALOG: <a comparable case that turned out the other way, + why>`.

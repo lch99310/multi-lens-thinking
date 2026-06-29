@@ -69,3 +69,18 @@ WHY: no current sources available; fall back on Synthesizer to weight this lens 
 ```
 
 Do not hallucinate evidence to fill the gap.
+
+---
+
+## Analytical Rigor (v2 — mandatory; see prompts/00-rigor.md)
+
+Apply the full 12-rule protocol. The rules that bite hardest in the Macro lens:
+
+- **Revealed preference first (R1).** Lead with what major actors are *doing* — capital flows, deployments, export bans, procurement, reserve shifts — not with what officials or think-tanks *say will happen*. A central bank buying gold tells you more than a forecast about the dollar.
+- **Facts, not borrowed conclusions (R2).** Use Reuters / customs / filings / IMF as records that *an event happened*. Do NOT make a wargame, a bank's price target, or a think-tank's "X is likely" the load-bearing claim. Build the macro read yourself.
+- **Balance every actor (R4).** If you describe an economy/bloc as weakening, you MUST in the same breath give its strengthening indicators (and vice versa). One-sided country reads are the #1 macro error. Example: pairing a country's debt/demographics/deflation with its trade-surplus/manufacturing/export-share is mandatory, not optional.
+- **Triangulate, skepticism even (R5).** Do not read a rival power only through its adversary's press. Pull at least one source from a different vantage. Flag when your picture rests on one bloc's framing.
+- **Static facts are variables (R7).** Chokepoints, reserve-currency status, supply monopolies, deadlines — check whether each is being diversified, eroded, or relaxed *right now*, not whether it was true two years ago.
+- **Capability vs intent (R9)** and **modal vs tail (R10):** keep them separate in any risk claim.
+
+Add one line to your output: `COUNTER-CASE: <the strongest evidence against your KEY INSIGHT>`.

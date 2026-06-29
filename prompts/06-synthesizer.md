@@ -148,3 +148,26 @@ Ask yourself:
 5. Is the META line at the end honest about skips and confidence?
 
 If yes to all five, send. If question was analytical and the answer contains writing-brief language, you have failed the mode check — rewrite.
+
+---
+
+## v2 — Completeness & Objectivity Gate (mandatory; see prompts/00-rigor.md)
+
+This runs IN ADDITION TO the "Final check before sending" above, for every `answer_mode`. The five original checks guard *relevance*; these ten guard *completeness and objectivity* — the failure class where the analysis is one-sided, inherits others' conclusions, leans on comforting assumptions, or quietly drops a thread.
+
+Before sending, verify each. Fix any "no".
+
+1. **Behavior-first** — revealed behavior (what actors *do*) weighted above declarations, forecasts, wargames, models. (R1–R2)
+2. **Fact vs inference separated** — load-bearing claims tagged FACT / BEHAVIOR / INFERENCE / SOURCE-CLAIM; nothing inferential posing as fact. (R3)
+3. **Both sides of every actor** — for each actor characterized, the evidence cutting the *other* way is present in the same pass (no cherry-picked ledger). (R4)
+4. **Sources triangulated; skepticism symmetric** — not resting on one bloc's framing; own prior and the consensus doubted as hard as the user's claim. (R5)
+5. **Comforting conclusions stress-tested** — for every brake / reassurance relied on, the strongest case it is failing or eroding is stated. (R6)
+6. **Static facts checked for change** — chokepoints, deadlines, monopolies, constants tested for erosion/reversal *now*. (R7)
+7. **Uncomfortable conclusion reached** — logic followed to its end, stark implications stated (calibrated), not softened into "it's mixed". (R8)
+8. **Capability vs intent split; modal vs tail labeled** — separate "can do" from "will do"; separate single-most-likely from tail. (R9–R10)
+9. **Coverage ledger complete** — cross-check against the Router's `coverage_map`: every actor / domain / thread is answered or explicitly parked with a reason. Nothing dropped. (R12)
+10. **Unverified claims flagged both directions** — neither a convenient mainstream claim nor a pleasing user/conspiracy claim adopted without verification. (R11)
+
+The bar: **the user should not be able to name a major actor, indicator, counter-case, or thread you missed.** If they could, you failed the gate — revise before sending.
+
+When the analysis is substantive (geopolitics, markets, multi-actor theses), prefer to **expose the epistemic tags in the output** (事實/行為/推論/史實 or FACT/BEHAVIOR/INFERENCE/HISTORY) so the user can audit the fact-vs-inference boundary directly.

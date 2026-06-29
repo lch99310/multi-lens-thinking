@@ -5,6 +5,8 @@ description: Analyze a question through up to four independent lenses — macro/
 
 # Multi-Lens Thinking
 
+**Version 2.1** — multi-perspective analysis with a cross-cutting **Analytical Rigor Protocol** (`prompts/00-rigor.md`). The rigor layer is prepended to every lens and enforced by the Synthesizer as a pre-send gate so the answer stays balanced, sourced, and complete.
+
 A six-stage pipeline that runs a question through multiple independent perspectives, synthesizes them, and writes a memory patch for the next session to confirm.
 
 ## When to invoke
@@ -53,7 +55,7 @@ Steps 2a–2d run in parallel. Each is a separate Task tool sub-agent so context
 
 This skill has two kinds of files:
 
-- **Skill files** (this directory): `SKILL.md`, `prompts/`, `templates/`, `README.md`. Read-only when installed as a plugin.
+- **Skill files** (this directory): `SKILL.md`, `prompts/`, `templates/`, `agents/`.
 - **User data files**: `persona.md`, `memory.md`, `patches/`. Must live somewhere the agent can both READ and WRITE.
 
 The user data location (`USER_DATA_DIR`) is resolved at runtime in this priority order:
@@ -96,6 +98,8 @@ Read these three files:
 
 Apply the router prompt to the user's question. The router output is a structured JSON-like block — keep it in your working memory; do NOT show it to the user verbatim.
 
+The v2 router also emits a `coverage_map` (actors / domains / threads). Keep it: the Synthesizer cross-checks against it so no actor, dimension, or sub-thread is silently dropped (rigor rule 12).
+
 Router output schema:
 
 ```
@@ -126,6 +130,8 @@ For each node in `active_nodes`, launch a sub-agent via the Task tool **in the s
 Each sub-agent prompt is built as:
 
 ```
+<CONTENTS OF prompts/00-rigor.md — the Analytical Rigor Protocol, prepended verbatim to EVERY node>
+
 <role prompt from prompts/02-{node}.md>
 
 USER QUESTION:
@@ -144,11 +150,13 @@ OUTPUT FORMAT:
 <for Personal: behavior depends on answer_mode — see prompts/03-personal.md>
 ```
 
+Every node must obey rules 1–11 of the rigor protocol within its slice (balance the actors it discusses, cite events as events not as borrowed conclusions, tag fact vs inference, triangulate sources, surface the counter-case to its own key claim).
+
 Search-enabled nodes (macro, local, historical) must cite at least one URL. Personal node must cite at least one specific element of persona.md/memory.md it relied on (and in analytical mode, output drops to ~250 words and excludes any topic-redirection).
 
 ### Step 3 — Synthesizer
 
-After all sub-agents return, read `prompts/06-synthesizer.md` and apply it yourself. The synthesizer input is:
+After all sub-agents return, read `prompts/06-synthesizer.md` and apply it yourself. Before sending, the synthesizer MUST run the **Completeness & Objectivity Gate** (10 checks appended to that prompt in v2) and cross-check against the router's `coverage_map`. The bar: the user should not be able to name a major actor, indicator, counter-case, or thread that was missed. The synthesizer input is:
 
 - Original question
 - `answer_mode` from router (controls structure and forbidden patterns)
@@ -183,10 +191,12 @@ If the session produced nothing memory-worthy, write a "NO PATCHES PROPOSED" fil
 - **persona.md missing**: tell the user this skill needs persona.md to work and stop.
 - **memory.md missing**: create an empty one with the template header and continue.
 - **`PATCHES_DIR` not writable**: write to outputs/patches/ and notify the user explicitly.
+- **Incomplete / one-sided / inherited analysis (v2 — the class this version targets)**: the analysis characterizes an actor with only one side of the ledger, leans on a think-tank/wargame/model conclusion instead of primary facts and revealed behavior, rests on one bloc's source framing, keeps a comforting assumption without stress-testing it, treats a changing fact as fixed, or silently drops a thread. **Guardrail**: the rigor protocol (`prompts/00-rigor.md`) is prepended to every node, the router emits a `coverage_map`, and the synthesizer runs the 10-point Completeness & Objectivity Gate before sending. If the user can name a missing actor/indicator/counter-case/thread, the gate failed.
 
 ## Files in this skill
 
 - `SKILL.md` — this file
+- `prompts/00-rigor.md` — **Analytical Rigor Protocol (v2)**; prepended to every node, enforced by the synthesizer
 - `prompts/01-router.md`
 - `prompts/02-macro.md`
 - `prompts/03-personal.md`
@@ -197,4 +207,4 @@ If the session produced nothing memory-worthy, write a "NO PATCHES PROPOSED" fil
 - `templates/persona.md` — copy to skill root on first install
 - `templates/memory.md` — copy to skill root on first install
 - `patches/` — generated patch files awaiting user confirmation
-- `README.md` — install & setup
+- `agents/openai.yaml` — UI metadata for skill lists and chips
