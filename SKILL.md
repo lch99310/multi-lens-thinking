@@ -5,7 +5,7 @@ description: Analyze a question through up to four independent lenses — macro/
 
 # Multi-Lens Thinking
 
-**Version 2.1** — multi-perspective analysis with a cross-cutting **Analytical Rigor Protocol** (`prompts/00-rigor.md`). The rigor layer is prepended to every lens and enforced by the Synthesizer as a pre-send gate so the answer stays balanced, sourced, and complete.
+**Version 2.2** — multi-perspective analysis with a cross-cutting **Analytical Rigor Protocol** (`prompts/00-rigor.md`) and optional private `lch-llm-wiki` integration (`references/lch-wiki-integration.md`). The rigor layer is prepended to every lens and enforced by the Synthesizer as a pre-send gate so the answer stays balanced, sourced, privacy-aware, and complete.
 
 A six-stage pipeline that runs a question through multiple independent perspectives, synthesizes them, and writes a memory patch for the next session to confirm.
 
@@ -31,14 +31,14 @@ Do NOT invoke for:
 ```
 Question
   ↓
-[1. Router]      — reads persona.md + memory.md (no search)
+[1. Router]      — reads lch-llm-wiki when available, else persona.md + memory.md (no search)
   ↓ produces: answer_mode, user_snapshot, search_hints, active_nodes, skip_log
   ↓                     ↑
   ↓             (answer_mode is THE most important field; it controls
   ↓              Personal lens depth and Synthesizer output style)
   ↓
   ├─ [2a. Macro]      — WebSearch
-  ├─ [2b. Personal]   — no search; behavior depends on answer_mode
+  ├─ [2b. Personal]   — no web search; prefers lch-llm-wiki; behavior depends on answer_mode
   ├─ [2c. Local]      — WebSearch → anysearch fallback
   └─ [2d. Historical] — hybrid (LLM + targeted WebSearch)
   ↓
@@ -51,32 +51,61 @@ Final answer to user
 
 Steps 2a–2d run in parallel. Each is a separate Task tool sub-agent so contexts stay isolated.
 
-## User data location
+## Private wiki and user data location
+
+### Preferred personal context: `lch-llm-wiki`
+
+When the user's private `lch99310/lch-llm-wiki` repository is available, treat it as the preferred personal knowledge base and source of truth for the Router, Personal lens, and Synthesizer privacy gate.
+
+Before using wiki context, read `references/lch-wiki-integration.md`. It defines how to resolve `LCH_WIKI_DIR`, which wiki pages to read, and how to apply the P/R/C disclosure gate.
+
+Use the wiki for:
+
+- Personal background, career facts, positioning, goals, constraints, and prior decisions.
+- Writing voice, depth appetite, analytical style, and product-thinking patterns.
+- Privacy boundaries that keep sensitive details out of user-facing answers.
+
+The wiki is **not** a public quotation source. Do not dump raw wiki contents into the answer.
+
+### Legacy user data
 
 This skill has two kinds of files:
 
 - **Skill files** (this directory): `SKILL.md`, `prompts/`, `templates/`, `agents/`.
 - **User data files**: `persona.md`, `memory.md`, `patches/`. Must live somewhere the agent can both READ and WRITE.
 
-The user data location (`USER_DATA_DIR`) is resolved at runtime in this priority order:
+The legacy user data location (`USER_DATA_DIR`) is resolved at runtime in this priority order:
 
 1. **Connected Cowork folder + `multi-lens/` subdir** — if the user has selected (mounted) a folder in Cowork, use `<mounted_folder>/multi-lens/`. This is the recommended setup.
 2. **Skill install dir** — fallback for read-only access to `persona.md` and `memory.md` if the user copied them there during install. Patches CANNOT be written here; they fall through to (3).
 3. **Outputs folder** — last-resort fallback for writing patches. The agent must tell the user the path and instruct them to move the patch into their actual data dir manually.
 
-If neither (1) nor (2) yields a readable `persona.md`, the skill stops and asks the user to either connect a folder via `request_cowork_directory` or place `persona.md` in the skill dir.
+If neither (1) nor (2) yields a readable `persona.md`, but `lch-llm-wiki` is available, continue with wiki context and create/use `memory.md` only if writable. If neither wiki context nor `persona.md` is available, stop and ask the user to provide one of them.
 
 ## Execution procedure
 
 The main agent (you) executes this skill by following these steps in order.
 
-### Step −1 — Resolve USER_DATA_DIR
+### Step −1 — Resolve LCH_WIKI_DIR and USER_DATA_DIR
+
+First read `references/lch-wiki-integration.md` and try to resolve `LCH_WIKI_DIR`.
+
+If `LCH_WIKI_DIR` is available:
+
+- Read `<LCH_WIKI_DIR>/AGENTS.md`.
+- Read `<LCH_WIKI_DIR>/wiki/index.md`.
+- For the user's question, read only the relevant linked wiki pages.
+- For personal facts, verify against `<LCH_WIKI_DIR>/wiki/profile/source-of-truth.md`.
+- Record `WIKI_CONTEXT_AVAILABLE = true`.
+
+If unavailable, record `WIKI_CONTEXT_AVAILABLE = false` and use legacy `persona.md` / `memory.md`.
 
 Determine where `persona.md`, `memory.md`, `patches/` live:
 
 1. Check whether a Cowork folder is mounted (env shows a selected folder). If yes, `USER_DATA_DIR = <mounted>/multi-lens/`. Create the subdir if missing.
 2. Else, check whether `persona.md` exists alongside this SKILL.md. If yes, `USER_DATA_DIR = <skill-dir>` (read-only — patches will fall through to outputs).
-3. Else, stop and tell the user: "I need a `persona.md` to run. Please either (a) select/connect a folder via Cowork (recommended — patches will then be writable) and place persona.md inside `<folder>/multi-lens/`, or (b) place persona.md alongside SKILL.md in the skill install dir (patches will go to outputs/ and you'll merge manually)."
+3. Else, if `WIKI_CONTEXT_AVAILABLE == true`, continue without `persona.md`.
+4. Else, stop and tell the user: "I need either `lch-llm-wiki` or a `persona.md` to run. Please either provide a local `lch-llm-wiki` checkout, select/connect a folder via Cowork with `persona.md` inside `<folder>/multi-lens/`, or place `persona.md` alongside SKILL.md."
 
 Internally remember:
 - `PERSONA_PATH = <USER_DATA_DIR>/persona.md`
@@ -90,13 +119,15 @@ List files in `<USER_DATA_DIR>/patches/`. If any patch files exist that haven't 
 
 ### Step 1 — Run Router
 
-Read these three files:
+Read these files:
 
-- `<PERSONA_PATH>`
-- `<MEMORY_PATH>`
+- `references/lch-wiki-integration.md`
+- If wiki context is available: relevant pages from `LCH_WIKI_DIR`, starting at `wiki/index.md`
+- `<PERSONA_PATH>` if present
+- `<MEMORY_PATH>` if present
 - `<skill-dir>/prompts/01-router.md`
 
-Apply the router prompt to the user's question. The router output is a structured JSON-like block — keep it in your working memory; do NOT show it to the user verbatim.
+Apply the router prompt to the user's question. Prefer wiki-backed facts over legacy persona facts when they conflict. The router output is a structured JSON-like block — keep it in your working memory; do NOT show it to the user verbatim.
 
 The v2 router also emits a `coverage_map` (actors / domains / threads). Keep it: the Synthesizer cross-checks against it so no actor, dimension, or sub-thread is silently dropped (rigor rule 12).
 
@@ -134,6 +165,8 @@ Each sub-agent prompt is built as:
 
 <role prompt from prompts/02-{node}.md>
 
+<if node == personal and WIKI_CONTEXT_AVAILABLE: concise excerpts / page-path citations from relevant lch-llm-wiki pages, plus disclosure level notes from source-of-truth.md>
+
 USER QUESTION:
 <original question>
 
@@ -152,7 +185,7 @@ OUTPUT FORMAT:
 
 Every node must obey rules 1–11 of the rigor protocol within its slice (balance the actors it discusses, cite events as events not as borrowed conclusions, tag fact vs inference, triangulate sources, surface the counter-case to its own key claim).
 
-Search-enabled nodes (macro, local, historical) must cite at least one URL. Personal node must cite at least one specific element of persona.md/memory.md it relied on (and in analytical mode, output drops to ~250 words and excludes any topic-redirection).
+Search-enabled nodes (macro, local, historical) must cite at least one URL. Personal node must cite at least one specific element of lch-llm-wiki, persona.md, or memory.md it relied on (and in analytical mode, output drops to ~250 words and excludes any topic-redirection).
 
 ### Step 3 — Synthesizer
 
@@ -163,6 +196,8 @@ After all sub-agents return, read `prompts/06-synthesizer.md` and apply it yours
 - `user_snapshot` from router
 - `skip_log` from router
 - All node outputs (verbatim)
+
+Before producing the final answer, apply the disclosure gate from `references/lch-wiki-integration.md` if wiki context was used.
 
 The synthesizer produces the **final user-facing answer**. Behavior depends on `answer_mode`:
 
@@ -188,10 +223,11 @@ If the session produced nothing memory-worthy, write a "NO PATCHES PROPOSED" fil
 - **Router puts a writer/analyst into `personal_decision` mode for an external question**: this is the known failure mode (see Bug fix v1.1). The question verb determines `answer_mode`, not the user's profession.
 - **WebSearch fails / returns empty**: that node should explicitly say "搜尋失敗" rather than hallucinate; synthesizer should down-weight it. If macro or local fails twice, try anysearch via `scripts/anysearch_cli.py search "<query>"`.
 - **Sub-agent times out**: skip it in synthesis and note in the skip_log.
-- **persona.md missing**: tell the user this skill needs persona.md to work and stop.
+- **persona.md missing**: continue if `lch-llm-wiki` is available; otherwise tell the user this skill needs either wiki context or persona.md to work and stop.
 - **memory.md missing**: create an empty one with the template header and continue.
 - **`PATCHES_DIR` not writable**: write to outputs/patches/ and notify the user explicitly.
 - **Incomplete / one-sided / inherited analysis (v2 — the class this version targets)**: the analysis characterizes an actor with only one side of the ledger, leans on a think-tank/wargame/model conclusion instead of primary facts and revealed behavior, rests on one bloc's source framing, keeps a comforting assumption without stress-testing it, treats a changing fact as fixed, or silently drops a thread. **Guardrail**: the rigor protocol (`prompts/00-rigor.md`) is prepended to every node, the router emits a `coverage_map`, and the synthesizer runs the 10-point Completeness & Objectivity Gate before sending. If the user can name a missing actor/indicator/counter-case/thread, the gate failed.
+- **Private wiki leakage (v2.2)**: `lch-llm-wiki` contains private personal and career material. **Guardrail**: read `references/lch-wiki-integration.md`, obey the P/R/C disclosure gate, and never surface confidential wiki details as user-facing facts unless the user explicitly asks for that exact detail.
 
 ## Files in this skill
 
@@ -204,6 +240,7 @@ If the session produced nothing memory-worthy, write a "NO PATCHES PROPOSED" fil
 - `prompts/05-historical.md`
 - `prompts/06-synthesizer.md`
 - `prompts/07-memory-updater.md`
+- `references/lch-wiki-integration.md` — private wiki lookup and disclosure gate
 - `templates/persona.md` — copy to skill root on first install
 - `templates/memory.md` — copy to skill root on first install
 - `patches/` — generated patch files awaiting user confirmation
