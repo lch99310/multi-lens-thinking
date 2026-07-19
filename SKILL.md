@@ -86,11 +86,11 @@ If neither (1) nor (2) yields a readable `persona.md`, but `lch-llm-wiki` is ava
 
 The main agent (you) executes this skill by following these steps in order.
 
-### Step −1 — Resolve LCH_WIKI_DIR and USER_DATA_DIR
+### Step −1 — Resolve wiki context and USER_DATA_DIR
 
-First read `references/lch-wiki-integration.md` and try to resolve `LCH_WIKI_DIR`.
+First read `references/lch-wiki-integration.md` and resolve wiki context. The resolution order is GitHub repo access first, then local repository fallback.
 
-If `LCH_WIKI_DIR` is available:
+If wiki context is available:
 
 - Read `<LCH_WIKI_DIR>/AGENTS.md`.
 - Read `<LCH_WIKI_DIR>/wiki/index.md`.
