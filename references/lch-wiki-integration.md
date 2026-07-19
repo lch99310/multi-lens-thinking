@@ -1,19 +1,24 @@
 # LCH Wiki Integration
 
-Use this reference whenever the user's local/private `lch-llm-wiki` repository is available. The wiki is the preferred personal context source for this skill.
+Use this reference whenever the user's private `lch-llm-wiki` repository is available. The wiki is the preferred personal context source for this skill.
 
 ## Repository
 
 Target repo: `lch99310/lch-llm-wiki` (private).
 
-Resolve `LCH_WIKI_DIR` in this order:
+Resolve wiki context in this order:
+
+1. **GitHub connector / GitHub repo access** to `lch99310/lch-llm-wiki`.
+2. **Local repository fallback**, only if GitHub access is unavailable, not installed, unauthorized, or fails.
+
+When GitHub access works, use it as the source of truth. Fetch the same paths named below from the private repo. Treat `LCH_WIKI_DIR` as the logical wiki root; if a local checkout is needed for `rg` or file-based lookup, clone the private repo into the current workspace under `work/repos/lch-llm-wiki` for read-only use. Do not modify, commit, push, publish, deploy, or expose the wiki.
+
+When GitHub access does **not** work, resolve a local repo in this order:
 
 1. `LCH_LLM_WIKI_DIR` environment variable, if set.
-2. A local folder named `lch-llm-wiki` in or above the current workspace.
-3. A local clone under `work/repos/lch-llm-wiki`.
-4. GitHub connector access to `lch99310/lch-llm-wiki`, if available.
-
-If GitHub access is available but no local checkout exists, clone the private repo into the current workspace under `work/repos/lch-llm-wiki` for read-only use. Do not modify, commit, push, publish, deploy, or expose the wiki.
+2. `${HOME}/Desktop/SideProjects/lch-llm-wiki`, if it exists.
+3. A local folder named `lch-llm-wiki` in or above the current workspace.
+4. A local clone under `work/repos/lch-llm-wiki`.
 
 If no source is available, fall back to `persona.md` and `memory.md`, and mention in the final META line that wiki context was unavailable.
 
